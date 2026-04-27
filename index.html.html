@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>디아블로4 트래커</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0a08;
+    --surface: #161210;
+    --card: #1e1815;
+    --border: #3a2e26;
+    --border-glow: #6b3d1e;
+    --gold: #c8972a;
+    --gold-light: #e8b84b;
+    --gold-dim: #7a5a18;
+    --red: #8b1a1a;
+    --red-bright: #c0392b;
+    --text: #e8ddd0;
+    --text-muted: #8a7a6a;
+    --text-dim: #5a4a3a;
+    --accent: #d4884a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* 배경 텍스처 */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(139,26,26,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(100,50,10,0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 16px 60px;
+  }
+
+  /* 헤더 */
+  .header {
+    text-align: center;
+    padding: 48px 0 32px;
+  }
+
+  .header-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    position: relative;
+  }
+
+  .header-icon svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 12px rgba(200,151,42,0.5));
+  }
+
+  .header h1 {
+    font-family: 'Cinzel', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--gold-light);
+    letter-spacing: 0.1em;
+    text-shadow: 0 0 30px rgba(200,151,42,0.4);
+    margin-bottom: 6px;
+  }
+
+  .header p {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+  }
+
+  /* 구분선 */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 28px;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border-glow), transparent);
+  }
+  .divider span {
+    font-size: 10px;
+    color: var(--gold-dim);
+    letter-spacing: 0.15em;
+    font-family: 'Cinzel', serif;
+  }
+
+  /* 카드 */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 20px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold-dim), transparent);
+  }
+
+  .card-title {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* 입력 필드 */
+  .field {
+    margin-bottom: 16px;
+  }
+
+  .field:last-child { margin-bottom: 0; }
+
+  .field label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+
+  .field input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+
+  .field input:focus {
+    border-color: var(--gold-dim);
+    box-shadow: 0 0 0 3px rgba(200,151,42,0.08);
+  }
+
+  .field input::placeholder {
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+
+  /* 직업 선택 그리드 */
+  .class-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .class-btn {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
+  }
+
+  .class-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.2s;
+    border-radius: 10px;
+  }
+
+  .class-btn.selected {
+    border-color: var(--gold);
+    background: rgba(200,151,42,0.06);
+  }
+
+  .class-btn.selected::before {
+    opacity: 1;
+    background: linear-gradient(135deg, rgba(200,151,42,0.08) 0%, transparent 60%);
+  }
+
+  .class-btn:active { transform: scale(0.97); }
+
+  .class-icon {
+    font-size: 24px;
+    margin-bottom: 6px;
+    line-height: 1;
+  }
+
+  .class-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .class-sub {
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .class-btn.selected .class-name {
+    color: var(--gold-light);
+  }
+
+  .class-check {
+    position: absolute;
+    top: 8px; right: 8px;
+    width: 16px; height: 16px;
+    background: var(--gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.2s;
+  }
+
+  .class-btn.selected .class-check {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .class-check::after {
+    content: '';
+    width: 5px;
+    height: 3px;
+    border-left: 1.5px solid var(--bg);
+    border-bottom: 1.5px solid var(--bg);
+    transform: rotate(-45deg) translate(1px, -1px);
+  }
+
+  /* 저장 버튼 */
+  .save-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #7a3a10, #a04a18);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 16px;
+    color: var(--gold-light);
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .save-btn:active { transform: scale(0.98); }
+
+  .save-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.05), transparent);
+  }
+
+  /* 저장 완료 토스트 */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--card);
+    border: 1px solid var(--gold-dim);
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-size: 13px;
+    color: var(--gold-light);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 100;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* 프리뷰 카드 */
+  .preview {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 16px;
+    display: none;
+  }
+
+  .preview.visible { display: block; }
+
+  .preview-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .preview-avatar {
+    width: 44px;
+    height: 44px;
+    background: var(--red);
+    border: 1px solid var(--border-glow);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .preview-name {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+
+  .preview-class {
+    font-size: 12px;
+    color: var(--gold);
+  }
+
+  /* 다음 추가 예정 */
+  .coming-soon {
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  .coming-soon p {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .coming-soon .cs-title {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- 헤더 -->
+  <div class="header">
+    <div class="header-icon">
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="32,4 36,28 60,32 36,36 32,60 28,36 4,32 28,28" fill="none" stroke="#c8972a" stroke-width="1.5" opacity="0.6"/>
+        <polygon points="32,12 34,28 52,32 34,36 32,52 30,36 12,32 30,28" fill="rgba(200,151,42,0.15)" stroke="#c8972a" stroke-width="1"/>
+        <circle cx="32" cy="32" r="5" fill="#c8972a" opacity="0.9"/>
+      </svg>
+    </div>
+    <h1>Diablo IV</h1>
+    <p>캐릭터 트래커</p>
+  </div>
+
+  <div class="divider"><span>CHARACTER</span></div>
+
+  <!-- 캐릭터명 -->
+  <div class="card">
+    <div class="card-title">캐릭터 정보</div>
+
+    <div class="field">
+      <label>캐릭터명</label>
+      <input type="text" id="char-name" placeholder="캐릭터 이름을 입력하세요" maxlength="20" oninput="updatePreview()">
+    </div>
+
+    <div class="field">
+      <label>직업 선택</label>
+      <div class="class-grid" id="class-grid">
+        <div class="class-btn" onclick="selectClass(this, '야만용사', '⚔️')">
+          <div class="class-check"></div>
+          <div class="class-icon">⚔️</div>
+          <div class="class-name">야만용사</div>
+          <div class="class-sub">Barbarian</div>
+        </div>
+        <div class="class-btn" onclick="selectClass(this, '도적', '🗡️')">
+          <div class="class-check"></div>
+          <div class="class-icon">🗡️</div>
+          <div class="class-name">도적</div>
+          <div class="class-sub">Rogue</div>
+        </div>
+        <div class="class-btn" onclick="selectClass(this, '원소술사', '🔥')">
+          <div class="class-check"></div>
+          <div class="class-icon">🔥</div>
+          <div class="class-name">원소술사</div>
+          <div class="class-sub">Sorcerer</div>
+        </div>
+        <div class="class-btn" onclick="selectClass(this, '강령술사', '💀')">
+          <div class="class-check"></div>
+          <div class="class-icon">💀</div>
+          <div class="class-name">강령술사</div>
+          <div class="class-sub">Necromancer</div>
+        </div>
+        <div class="class-btn" onclick="selectClass(this, '드루이드', '🌿')">
+          <div class="class-check"></div>
+          <div class="class-icon">🌿</div>
+          <div class="class-name">드루이드</div>
+          <div class="class-sub">Druid</div>
+        </div>
+        <div class="class-btn" onclick="selectClass(this, '영혼흡수자', '🌀')">
+          <div class="class-check"></div>
+          <div class="class-icon">🌀</div>
+          <div class="class-name">영혼흡수자</div>
+          <div class="class-sub">Spiritborn</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 프리뷰 -->
+    <div class="preview" id="preview">
+      <div class="preview-row">
+        <div class="preview-avatar" id="preview-icon">⚔️</div>
+        <div>
+          <div class="preview-name" id="preview-name">—</div>
+          <div class="preview-class" id="preview-class">직업 미선택</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 저장 버튼 -->
+  <button class="save-btn" onclick="saveData()">저장하기</button>
+
+  <!-- 다음 추가 예정 -->
+  <div style="margin-top: 28px;">
+    <div class="divider"><span>COMING NEXT</span></div>
+    <div class="coming-soon">
+      <div class="cs-title">다음에 추가할 항목</div>
+      <p>레벨 · 빌드명 · 장비 세팅 · 스킬 등<br>원하는 항목을 말씀해 주세요</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- 토스트 -->
+<div class="toast" id="toast">저장되었습니다</div>
+
+<script>
+  let selectedClass = '';
+  let selectedIcon = '';
+
+  function selectClass(el, name, icon) {
+    document.querySelectorAll('.class-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedClass = name;
+    selectedIcon = icon;
+    updatePreview();
+  }
+
+  function updatePreview() {
+    const name = document.getElementById('char-name').value.trim();
+    const preview = document.getElementById('preview');
+    if (name || selectedClass) {
+      preview.classList.add('visible');
+      document.getElementById('preview-name').textContent = name || '이름 없음';
+      document.getElementById('preview-class').textContent = selectedClass || '직업 미선택';
+      document.getElementById('preview-icon').textContent = selectedIcon || '?';
+    } else {
+      preview.classList.remove('visible');
+    }
+  }
+
+  function saveData() {
+    const data = {
+      name: document.getElementById('char-name').value.trim(),
+      class: selectedClass,
+      icon: selectedIcon,
+    };
+    localStorage.setItem('d4-char', JSON.stringify(data));
+    showToast('저장되었습니다 ✓');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  // 불러오기
+  function loadData() {
+    try {
+      const saved = JSON.parse(localStorage.getItem('d4-char') || '{}');
+      if (saved.name) document.getElementById('char-name').value = saved.name;
+      if (saved.class) {
+        document.querySelectorAll('.class-btn').forEach(b => {
+          if (b.querySelector('.class-name')?.textContent === saved.class) {
+            b.classList.add('selected');
+            selectedClass = saved.class;
+            selectedIcon = saved.icon || '';
+          }
+        });
+      }
+      updatePreview();
+    } catch(e) {}
+  }
+
+  loadData();
+</script>
+</body>
+</html>
